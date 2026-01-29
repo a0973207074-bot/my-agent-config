@@ -6,12 +6,15 @@ echo   (Run this on your new computer)
 echo ========================================================
 
 echo.
-echo [1/4] Installing 20 VS Code Extensions...
+echo [1/5] Installing 20 VS Code Extensions to Antigravity...
 set "EXT_FILE=configs\vscode\extensions_list.txt"
+set "AG_EXT_DIR=%USERPROFILE%\.antigravity\extensions"
+if not exist "!AG_EXT_DIR!" mkdir "!AG_EXT_DIR!"
+
 if exist "!EXT_FILE!" (
     for /f "tokens=*" %%i in (!EXT_FILE!) do (
         echo Installing: %%i
-        call code --install-extension %%i
+        call code --extensions-dir "!AG_EXT_DIR!" --install-extension %%i
     )
 ) else (
     echo [ERROR] Extensions list not found!
