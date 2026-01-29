@@ -1,52 +1,59 @@
 @echo off
+setlocal enabledelayedexpansion
 echo ========================================================
-echo   Agent Config & Skills Setup Script
+echo   Antigravity Full Environment Sync & Setup
 echo   (Run this on your new computer)
 echo ========================================================
 
 echo.
-echo [1/3] Installing VS Code Extensions...
-echo Installing: denoland.vscode-deno
-call code --install-extension denoland.vscode-deno
-echo Installing: github.copilot
-call code --install-extension github.copilot
-echo Installing: github.copilot-chat
-call code --install-extension github.copilot-chat
-echo Installing: ms-python.debugpy
-call code --install-extension ms-python.debugpy
-echo Installing: ms-python.python
-call code --install-extension ms-python.python
-echo Installing: ms-python.vscode-pylance
-call code --install-extension ms-python.vscode-pylance
-echo Installing: ms-python.vscode-python-envs
-call code --install-extension ms-python.vscode-python-envs
-
-echo.
-echo [2/3] Installing Global Rules...
-echo Target: %USERPROFILE%\.gemini\GEMINI.md
-
-if not exist "%USERPROFILE%\.gemini" (
-    mkdir "%USERPROFILE%\.gemini"
+echo [1/4] Installing 20 VS Code Extensions...
+set "EXT_FILE=configs\vscode\extensions_list.txt"
+if exist "!EXT_FILE!" (
+    for /f "tokens=*" %%i in (!EXT_FILE!) do (
+        echo Installing: %%i
+        call code --install-extension %%i
+    )
+) else (
+    echo [ERROR] Extensions list not found!
 )
 
-copy /Y "rules.md" "%USERPROFILE%\.gemini\GEMINI.md"
-echo Rules installed successfully!
+echo.
+echo [2/4] Deploying Agent Rules & Global Config...
+set "GEMINI_DIR=%USERPROFILE%\.gemini"
+set "AG_DIR=%GEMINI_DIR%\antigravity"
+
+if not exist "!GEMINI_DIR!" mkdir "!GEMINI_DIR!"
+if not exist "!AG_DIR!" mkdir "!AG_DIR!"
+
+echo Installing Global Rules...
+copy /Y "rules.md" "!GEMINI_DIR!\GEMINI.md"
+
+echo Installing User Preferences...
+copy /Y "configs\antigravity\user_settings.pb" "!AG_DIR!\user_settings.pb"
+copy /Y "configs\antigravity\mcp_config.json" "!AG_DIR!\mcp_config.json"
 
 echo.
-echo [3/3] Installing Skills to Global Path...
-echo Target: %USERPROFILE%\.gemini\antigravity\global_skills
-
-if not exist "%USERPROFILE%\.gemini\antigravity\global_skills" (
-    mkdir "%USERPROFILE%\.gemini\antigravity\global_skills"
+echo [3/4] Deploying VS Code User Settings...
+set "VSCODE_USER=%APPDATA%\Code\User"
+if exist "!VSCODE_USER!" (
+    copy /Y "configs\vscode\settings.json" "!VSCODE_USER!\settings.json"
+    echo VS Code settings updated!
+) else (
+    echo [SKIP] VS Code User path not found.
 )
 
-xcopy "skills\*" "%USERPROFILE%\.gemini\antigravity\global_skills\" /E /Y /I
+echo.
+echo [4/4] Deploying Global Skills...
+set "SKILLS_DIR=!AG_DIR!\global_skills"
+if not exist "!SKILLS_DIR!" mkdir "!SKILLS_DIR!"
+xcopy "skills\*" "!SKILLS_DIR!\" /E /Y /I
 
 echo.
 echo ========================================================
 echo   Setup Complete!
-echo   - Extensions: Installed
-echo   - Rules: Installed to GEMINI.md
-echo   - Skills: Copied to global_skills
+echo   - 20 Extensions installed
+echo   - Global Rules & Preferences deployed
+echo   - VS Code Settings synced
+echo   - 22 Skills installed to global_skills
 echo ========================================================
 pause
