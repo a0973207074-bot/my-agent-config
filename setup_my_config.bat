@@ -37,6 +37,11 @@ if exist "configs\antigravity_extensions\jlcodes.antigravity-cockpit" (
     if !errorlevel! equ 0 (echo   Success!) else (echo   [ERROR] Copy failed with code !errorlevel!)
 )
 
+if exist "configs\antigravity_extensions\extensions.json" (
+    echo Syncing extensions cache...
+    copy /Y "configs\antigravity_extensions\extensions.json" "!AG_EXT_DIR!\extensions.json"
+)
+
 echo.
 echo [3/5] Deploying Agent Rules & Global Config...
 set "GEMINI_DIR=%USERPROFILE%\.gemini"
