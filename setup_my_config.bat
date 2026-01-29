@@ -26,13 +26,15 @@ set "AG_EXT_DIR=%USERPROFILE%\.antigravity\extensions"
 if not exist "!AG_EXT_DIR!" mkdir "!AG_EXT_DIR!"
 
 if exist "configs\antigravity_extensions\pesosz.antigravity-auto-accept" (
+    echo Copying: Antigravity Auto Accept...
     xcopy "configs\antigravity_extensions\pesosz.antigravity-auto-accept" "!AG_EXT_DIR!\pesosz.antigravity-auto-accept-1.0.3-universal\" /E /Y /I
-    echo Installed: Antigravity Auto Accept
+    if !errorlevel! equ 0 (echo   Success!) else (echo   [ERROR] Copy failed with code !errorlevel!)
 )
 
 if exist "configs\antigravity_extensions\jlcodes.antigravity-cockpit" (
+    echo Copying: Antigravity Cockpit...
     xcopy "configs\antigravity_extensions\jlcodes.antigravity-cockpit" "!AG_EXT_DIR!\jlcodes.antigravity-cockpit-2.1.4-universal\" /E /Y /I
-    echo Installed: Antigravity Cockpit
+    if !errorlevel! equ 0 (echo   Success!) else (echo   [ERROR] Copy failed with code !errorlevel!)
 )
 
 echo.
