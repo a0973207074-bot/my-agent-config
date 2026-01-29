@@ -12,12 +12,14 @@ echo Installing: github.copilot
 call code --install-extension github.copilot
 echo Installing: github.copilot-chat
 call code --install-extension github.copilot-chat
-echo Installing: ms-python.vscode-pylance
-call code --install-extension ms-python.vscode-pylance
-echo Installing: ms-python.python
-call code --install-extension ms-python.python
 echo Installing: ms-python.debugpy
 call code --install-extension ms-python.debugpy
+echo Installing: ms-python.python
+call code --install-extension ms-python.python
+echo Installing: ms-python.vscode-pylance
+call code --install-extension ms-python.vscode-pylance
+echo Installing: ms-python.vscode-python-envs
+call code --install-extension ms-python.vscode-python-envs
 
 echo.
 echo [2/3] Installing Global Rules...
