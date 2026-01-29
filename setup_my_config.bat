@@ -18,7 +18,22 @@ if exist "!EXT_FILE!" (
 )
 
 echo.
-echo [2/4] Deploying Agent Rules & Global Config...
+echo [2/5] Deploying Antigravity-Specific Extensions...
+set "AG_EXT_DIR=%USERPROFILE%\.antigravity\extensions"
+if not exist "!AG_EXT_DIR!" mkdir "!AG_EXT_DIR!"
+
+if exist "configs\antigravity_extensions\pesosz.antigravity-auto-accept" (
+    xcopy "configs\antigravity_extensions\pesosz.antigravity-auto-accept" "!AG_EXT_DIR!\pesosz.antigravity-auto-accept-1.0.3-universal\" /E /Y /I
+    echo Installed: Antigravity Auto Accept
+)
+
+if exist "configs\antigravity_extensions\jlcodes.antigravity-cockpit" (
+    xcopy "configs\antigravity_extensions\jlcodes.antigravity-cockpit" "!AG_EXT_DIR!\jlcodes.antigravity-cockpit-2.1.4-universal\" /E /Y /I
+    echo Installed: Antigravity Cockpit
+)
+
+echo.
+echo [3/5] Deploying Agent Rules & Global Config...
 set "GEMINI_DIR=%USERPROFILE%\.gemini"
 set "AG_DIR=%GEMINI_DIR%\antigravity"
 
@@ -33,7 +48,7 @@ copy /Y "configs\antigravity\user_settings.pb" "!AG_DIR!\user_settings.pb"
 copy /Y "configs\antigravity\mcp_config.json" "!AG_DIR!\mcp_config.json"
 
 echo.
-echo [3/4] Deploying VS Code User Settings...
+echo [4/5] Deploying VS Code User Settings...
 set "VSCODE_USER=%APPDATA%\Code\User"
 if exist "!VSCODE_USER!" (
     copy /Y "configs\vscode\settings.json" "!VSCODE_USER!\settings.json"
@@ -43,7 +58,7 @@ if exist "!VSCODE_USER!" (
 )
 
 echo.
-echo [4/4] Deploying Global Skills...
+echo [5/5] Deploying Global Skills...
 set "SKILLS_DIR=!AG_DIR!\global_skills"
 if not exist "!SKILLS_DIR!" mkdir "!SKILLS_DIR!"
 xcopy "global_skills\*" "!SKILLS_DIR!\" /E /Y /I
@@ -52,7 +67,8 @@ echo.
 echo ========================================================
 echo   Setup Complete!
 echo   - 20 Extensions installed
-echo   - Global Rules & Preferences deployed
+echo   - Antigravity Auto Accept ^& Cockpit deployed
+echo   - Global Rules ^& Preferences deployed
 echo   - VS Code Settings synced
 echo   - 22 Skills installed to global_skills
 echo ========================================================
