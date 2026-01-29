@@ -46,7 +46,7 @@ echo.
 echo [4/4] Deploying Global Skills...
 set "SKILLS_DIR=!AG_DIR!\global_skills"
 if not exist "!SKILLS_DIR!" mkdir "!SKILLS_DIR!"
-xcopy "skills\*" "!SKILLS_DIR!\" /E /Y /I
+xcopy "global_skills\*" "!SKILLS_DIR!\" /E /Y /I
 
 echo.
 echo ========================================================
