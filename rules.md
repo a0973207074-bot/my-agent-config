@@ -40,4 +40,6 @@
 
 ## 任務啟動協議 (強制)
 
-- 當開啟新任務或觸發任何技能時，必須先讀取並執行 auto-skill 技能的 SKILL.md。
+- 當開啟新任務或觸發任何技能時，必須執行以下初始化程序：
+  1. 執行每日同步腳本（若今日尚未執行）：`powershell -ExecutionPolicy Bypass -File "C:\Users\User\.gemini\antigravity\scratch\my-agent-config\sync-auto-skill.ps1"`
+  2. 讀取並執行 auto-skill 技能的 SKILL.md。
