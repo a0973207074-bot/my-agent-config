@@ -16,33 +16,43 @@ if (Test-Path $lastSyncFile) {
 Write-Host '正在啟動 Auto-Skill 每日自動同步...'
 
 # 2. 從 GitHub 拉取更新 (Pull)
-Set-Location $repoPath
-git pull origin main --rebase
+try {
+    Set-Location $repoPath
+    git pull origin main --rebase
+}
+catch {
+    Write-Warning "Git Pull 失敗，可能是因為網路或衝突問題。錯誤詳細資訊：$($_.Exception.Message)"
+}
 
 # 3. 載入 (Apply/Load to System)
 if (Test-Path $localSkillPath) {
-    # 確保目的地目錄存在
-    $dest = "$repoPath\global_skills\auto-skill"
-    if (!(Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force }
-    
-    # 這裡的邏輯是從本地 sync 到 repo，或者反過來？
-    # 根據原腳本第24行：從 repo 到本地
-    Copy-Item -Path "$repoPath\global_skills\auto-skill\*" -Destination "$localSkillPath\" -Recurse -Force
+    try {
+        $dest = "$repoPath\global_skills\auto-skill"
+        if (!(Test-Path $dest)) { New-Item -ItemType Directory -Path $dest -Force }
+        Copy-Item -Path "$repoPath\global_skills\auto-skill\*" -Destination "$localSkillPath\" -Recurse -Force
+    }
+    catch {
+        Write-Error "載入技能至系統時發生錯誤：$($_.Exception.Message)"
+    }
 }
 
 # 4. 匯出/備份 (Sync/Push to GitHub)
-# 檢查本地 auto-skill 是否有更新並同步回 repo
-if (Test-Path $localSkillPath) {
-    Copy-Item -Path "$localSkillPath\*" -Destination "$repoPath\global_skills\auto-skill\" -Recurse -Force
+try {
+    if (Test-Path $localSkillPath) {
+        Copy-Item -Path "$localSkillPath\*" -Destination "$repoPath\global_skills\auto-skill\" -Recurse -Force
+    }
+    
+    git add .
+    $status = git status --porcelain
+    if ($status) {
+        $msg = "auto: periodic sync of expertises and skills ($today)"
+        git commit -m $msg
+        git push origin main
+        Write-Host '已將本地新經驗上傳至 GitHub。'
+    }
 }
-
-git add .
-$status = git status --porcelain
-if ($status) {
-    $msg = "auto: periodic sync of expertises and skills ($today)"
-    git commit -m $msg
-    git push origin main
-    Write-Host '已將本地新經驗上傳至 GitHub。'
+catch {
+    Write-Warning "備份至 GitHub 時發生異常，將於下次嘗試同步。錯誤內容：$($_.Exception.Message)"
 }
 
 # 5. 紀錄同步時間
