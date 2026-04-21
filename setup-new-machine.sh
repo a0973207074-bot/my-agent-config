@@ -96,6 +96,10 @@ REPOS=(
     "cascade"
     "auto-skill"
     "my-agent-config"
+    "ugo-reception"
+    "ugo-robot-integration"
+    "unitree-g1-dev"
+    "maira-fastumi"
 )
 
 for repo in "${REPOS[@]}"; do

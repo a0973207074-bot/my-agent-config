@@ -82,7 +82,11 @@ $REPOS = @(
     "sam-3d-gui",
     "cascade",
     "auto-skill",
-    "my-agent-config"
+    "my-agent-config",
+    "ugo-reception",
+    "ugo-robot-integration",
+    "unitree-g1-dev",
+    "maira-fastumi"
 )
 
 foreach ($repo in $REPOS) {
