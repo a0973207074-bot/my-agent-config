@@ -148,6 +148,18 @@ rclone copy "${RCLONE_GDRIVE}/env/ugo-reception/.env"  "$PROJECTS_DIR/ugo-webhoo
 rclone copy "${RCLONE_GDRIVE}/env/ugo-cloud-api/.env"  "$PROJECTS_DIR/kyle-projects/ugo-cloud-api/.env" 2>/dev/null || true
 log ".env 設定完成"
 
+# ── 11. 設定每日自動同步（cron）─────────────────────────────
+info "設定每日自動同步..."
+SYNC_SCRIPT="$HOME/.kyle-sync.sh"
+rclone copy "${RCLONE_GDRIVE}/sync.sh" "$HOME/.kyle-sync.sh" 2>/dev/null || \
+    curl -fsSL "https://raw.githubusercontent.com/a0973207074-bot/my-agent-config/main/sync.sh" -o "$SYNC_SCRIPT"
+chmod +x "$SYNC_SCRIPT"
+
+# 加入 cron（每天早上 9 點）
+CRON_JOB="0 9 * * * $SYNC_SCRIPT >> $HOME/.kyle-sync.log 2>&1"
+(crontab -l 2>/dev/null | grep -v "kyle-sync"; echo "$CRON_JOB") | crontab -
+log "每日同步排程設定完成（每天 09:00）"
+
 # ── 完成 ─────────────────────────────────────────────────────
 echo ""
 echo "============================================================"
@@ -157,4 +169,6 @@ echo "  專案資料夾：$PROJECTS_DIR"
 echo "  大型檔案：  $LARGE_FILES_DIR"
 echo "  Memory：    $MEMORY_PATH"
 echo "  Docker：    docker exec -it maira-fastumi bash"
+echo "  每日同步：  每天 09:00 自動執行"
+echo "  同步 Log：  ~/.kyle-sync.log"
 echo "============================================================"

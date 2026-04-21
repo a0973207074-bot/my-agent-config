@@ -126,6 +126,20 @@ rclone copy "$GDRIVE/env/ugo-reception/.env"  "$PROJECTS_DIR\ugo-webhook-server\
 rclone copy "$GDRIVE/env/ugo-cloud-api/.env"  "$PROJECTS_DIR\kyle-projects\ugo-cloud-api\.env"
 log ".env 設定完成"
 
+# ── 9. 設定每日自動同步（Task Scheduler）────────────────────
+info "設定每日自動同步..."
+$syncScript = "$HOME\.kyle-sync.ps1"
+rclone copy "$GDRIVE/sync.ps1" $syncScript 2>$null
+if (-not (Test-Path $syncScript)) {
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/a0973207074-bot/my-agent-config/main/sync.ps1" -OutFile $syncScript
+}
+
+$action  = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NonInteractive -File `"$syncScript`""
+$trigger = New-ScheduledTaskTrigger -Daily -At "09:00"
+$settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 1)
+Register-ScheduledTask -TaskName "KyleDailySync" -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
+log "每日同步排程設定完成（每天 09:00）"
+
 # ── 完成 ─────────────────────────────────────────────────────
 Write-Host "`n============================================================" -ForegroundColor Cyan
 Write-Host "  完成！" -ForegroundColor Cyan
@@ -134,4 +148,6 @@ Write-Host "  專案資料夾：$PROJECTS_DIR"
 Write-Host "  大型檔案：  $LARGE_DIR"
 Write-Host "  Memory：    $memoryPath"
 Write-Host "  Docker：    docker exec -it maira-fastumi bash"
+Write-Host "  每日同步：  每天 09:00 自動執行"
+Write-Host "  同步 Log：  $HOME\.kyle-sync.log"
 Write-Host "============================================================" -ForegroundColor Cyan
