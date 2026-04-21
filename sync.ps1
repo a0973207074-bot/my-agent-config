@@ -44,17 +44,18 @@ function Sync-Repo {
 
 log "===== 每日同步開始（$HOSTNAME）====="
 
-# ── 1. 所有 GitHub Repo ──────────────────────────────────────
-$REPOS = @(
-    "kyle-workspace-backup","ugo-webhook-server","ugo-python-sdk",
-    "kyle-claude-config","kyle-projects","robotics-workstation",
-    "unitree-g1-gtc2026-dev","ugo-line-webhook","sam-3d-gui",
-    "cascade","auto-skill","my-agent-config",
-    "ugo-reception","ugo-robot-integration","unitree-g1-dev","maira-fastumi"
-)
+# ── 1. 所有 GitHub Repo（自動讀取帳號下所有 repo）────────────
+log "  讀取 GitHub repo 清單..."
+$REPOS = gh repo list $GITHUB_USER --limit 100 --json name --jq '.[].name' 2>$null
 
 foreach ($repo in $REPOS) {
-    Sync-Repo "$PROJECTS_DIR\$repo" $repo
+    $target = "$PROJECTS_DIR\$repo"
+    # 若本地不存在則自動 clone
+    if (-not (Test-Path "$target\.git")) {
+        log "  $repo`: 新 repo，clone 中..."
+        gh repo clone "${GITHUB_USER}/${repo}" $target -- --quiet 2>$null
+    }
+    Sync-Repo $target $repo
 }
 
 # ── 2. Claude Memory ─────────────────────────────────────────
