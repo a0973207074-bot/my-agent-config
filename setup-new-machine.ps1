@@ -128,17 +128,27 @@ log ".env 設定完成"
 
 # ── 9. 設定每日自動同步（Task Scheduler）────────────────────
 info "設定每日自動同步..."
-$syncScript = "$HOME\.kyle-sync.ps1"
-rclone copy "$GDRIVE/sync.ps1" $syncScript 2>$null
-if (-not (Test-Path $syncScript)) {
-    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/a0973207074-bot/my-agent-config/main/sync.ps1" -OutFile $syncScript
+
+# 9a. KyleSync：kyle-claude-config 雙向同步（記憶 + 專案）
+$kyleSyncDir = "C:\Users\User\kyle-sync"
+if (Test-Path "$kyleSyncDir\.git") {
+    info "kyle-sync 已存在，pull..."
+    git -C $kyleSyncDir pull --quiet
+} else {
+    info "Clone kyle-claude-config → kyle-sync..."
+    gh repo clone "${GITHUB_USER}/kyle-claude-config" $kyleSyncDir -- --quiet
 }
 
-$action  = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NonInteractive -File `"$syncScript`""
+$action  = New-ScheduledTaskAction -Execute "C:\Users\User\kyle-sync\sync.bat"
 $trigger = New-ScheduledTaskTrigger -Daily -At "09:00"
 $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 1)
-Register-ScheduledTask -TaskName "KyleDailySync" -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
-log "每日同步排程設定完成（每天 09:00）"
+Register-ScheduledTask -TaskName "KyleSync" -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
+log "KyleSync 排程設定完成（每天 09:00 雙向同步 Memory + 專案）"
+
+# 9b. 執行首次同步
+info "執行首次同步..."
+Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$kyleSyncDir\sync.bat`"" -Wait -NoNewWindow
+log "首次同步完成"
 
 # ── 完成 ─────────────────────────────────────────────────────
 Write-Host "`n============================================================" -ForegroundColor Cyan
