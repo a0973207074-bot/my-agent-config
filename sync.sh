@@ -56,7 +56,7 @@ for repo in $REPOS; do
 done
 
 # ── 2. Claude Memory ─────────────────────────────────────────
-HOME_PATH=$(echo $HOME | sed 's|/|-|g' | sed 's|^-||')
+HOME_PATH=$(echo $HOME | sed 's|/|-|g')
 sync_repo "$HOME/.claude/projects/$HOME_PATH/memory" "claude-memory"
 
 # ── 3. Google Drive .env 同步（雙向）────────────────────────

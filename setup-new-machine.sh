@@ -116,14 +116,35 @@ log "所有 repo clone 完成"
 
 # ── 7. Claude Memory 同步 ────────────────────────────────────
 info "同步 Claude Memory..."
-HOME_PATH=$(echo $HOME | sed 's|/|-|g' | sed 's|^-||')
+HOME_PATH=$(echo $HOME | sed 's|/|-|g')
 MEMORY_PATH="$HOME/.claude/projects/$HOME_PATH/memory"
 mkdir -p "$MEMORY_PATH"
 
 if [ -d "$MEMORY_PATH/.git" ]; then
-    git -C "$MEMORY_PATH" pull --quiet
+    # 已是 git repo：先 commit 本地變更，再 rebase，再 push
+    cd "$MEMORY_PATH"
+    if ! git diff --quiet || ! git diff --staged --quiet || [ -n "$(git ls-files --others --exclude-standard)" ]; then
+        git add -A
+        git commit -m "pre-sync backup: $(hostname) $(date '+%Y-%m-%d %H:%M')" --quiet
+        info "  Memory：已備份本地變更"
+    fi
+    git pull --rebase --quiet && git push --quiet
 else
+    # 不是 git repo：先備份現有檔案，clone 後合併回去
+    BACKUP_DIR="$MEMORY_PATH.bak.$(date '+%Y%m%d%H%M%S')"
+    if [ -n "$(ls -A $MEMORY_PATH 2>/dev/null)" ]; then
+        cp -r "$MEMORY_PATH" "$BACKUP_DIR"
+        info "  Memory：現有檔案備份至 $BACKUP_DIR"
+    fi
     git clone "$CLAUDE_MEMORY_REPO" "$MEMORY_PATH" --quiet
+    # 把備份檔案合併回來（本地優先）
+    if [ -d "$BACKUP_DIR" ]; then
+        cp -r "$BACKUP_DIR/." "$MEMORY_PATH/"
+        cd "$MEMORY_PATH"
+        git add -A
+        git commit -m "merge local memory: $(hostname) $(date '+%Y-%m-%d %H:%M')" --quiet 2>/dev/null || true
+        git push --quiet 2>/dev/null || true
+    fi
 fi
 log "Claude Memory 同步完成"
 
