@@ -59,7 +59,7 @@ foreach ($repo in $REPOS) {
 }
 
 # ── 2. Claude Memory ─────────────────────────────────────────
-$homePath = $HOME -replace "\\","-" -replace "^-",""
+$homePath = $HOME -replace "[:\\]","-"
 Sync-Repo "$HOME\.claude\projects\$homePath\memory" "claude-memory"
 
 # ── 3. Google Drive .env 同步 ────────────────────────────────

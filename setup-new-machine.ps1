@@ -103,14 +103,39 @@ log "所有 repo clone 完成"
 
 # ── 6. Claude Memory 同步 ────────────────────────────────────
 info "同步 Claude Memory..."
-$homePath = $HOME -replace "\\","-" -replace "^-",""
+$homePath = $HOME -replace "[:\\]","-"
 $memoryPath = "$HOME\.claude\projects\$homePath\memory"
 New-Item -ItemType Directory -Force -Path $memoryPath | Out-Null
 
 if (Test-Path "$memoryPath\.git") {
-    git -C $memoryPath pull --quiet
+    # 已是 git repo：先 commit 本地變更，再 rebase，再 push
+    Push-Location $memoryPath
+    $status = git status --porcelain 2>$null
+    if ($status) {
+        git add -A
+        git commit -m "pre-sync backup: $env:COMPUTERNAME $(Get-Date -Format 'yyyy-MM-dd HH:mm')" --quiet
+        info "  Memory：已備份本地變更"
+    }
+    git pull --rebase --quiet; git push --quiet
+    Pop-Location
 } else {
+    # 不是 git repo：先備份現有檔案，clone 後合併回去
+    $backupDir = "$memoryPath.bak.$(Get-Date -Format 'yyyyMMddHHmmss')"
+    $existingFiles = Get-ChildItem $memoryPath -ErrorAction SilentlyContinue
+    if ($existingFiles) {
+        Copy-Item $memoryPath $backupDir -Recurse -Force
+        info "  Memory：現有檔案備份至 $backupDir"
+    }
     git clone $MEMORY_REPO $memoryPath --quiet
+    if (Test-Path $backupDir) {
+        # 合併本地檔案（本地優先，-NoClobber 不覆蓋雲端已有的）
+        Copy-Item "$backupDir\*" $memoryPath -Force
+        Push-Location $memoryPath
+        git add -A
+        git commit -m "merge local memory: $env:COMPUTERNAME $(Get-Date -Format 'yyyy-MM-dd HH:mm')" --quiet 2>$null
+        git push --quiet 2>$null
+        Pop-Location
+    }
 }
 log "Claude Memory 同步完成"
 
@@ -128,27 +153,17 @@ log ".env 設定完成"
 
 # ── 9. 設定每日自動同步（Task Scheduler）────────────────────
 info "設定每日自動同步..."
-
-# 9a. KyleSync：kyle-claude-config 雙向同步（記憶 + 專案）
-$kyleSyncDir = "C:\Users\User\kyle-sync"
-if (Test-Path "$kyleSyncDir\.git") {
-    info "kyle-sync 已存在，pull..."
-    git -C $kyleSyncDir pull --quiet
-} else {
-    info "Clone kyle-claude-config → kyle-sync..."
-    gh repo clone "${GITHUB_USER}/kyle-claude-config" $kyleSyncDir -- --quiet
+$syncScript = "$HOME\.kyle-sync.ps1"
+rclone copy "$GDRIVE/sync.ps1" $syncScript 2>$null
+if (-not (Test-Path $syncScript)) {
+    Invoke-WebRequest -Uri "https://raw.githubusercontent.com/a0973207074-bot/my-agent-config/main/sync.ps1" -OutFile $syncScript
 }
 
-$action  = New-ScheduledTaskAction -Execute "C:\Users\User\kyle-sync\sync.bat"
+$action  = New-ScheduledTaskAction -Execute "powershell.exe" -Argument "-NonInteractive -File `"$syncScript`""
 $trigger = New-ScheduledTaskTrigger -Daily -At "09:00"
 $settings = New-ScheduledTaskSettingsSet -ExecutionTimeLimit (New-TimeSpan -Hours 1)
-Register-ScheduledTask -TaskName "KyleSync" -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
-log "KyleSync 排程設定完成（每天 09:00 雙向同步 Memory + 專案）"
-
-# 9b. 執行首次同步
-info "執行首次同步..."
-Start-Process -FilePath "cmd.exe" -ArgumentList "/c `"$kyleSyncDir\sync.bat`"" -Wait -NoNewWindow
-log "首次同步完成"
+Register-ScheduledTask -TaskName "KyleDailySync" -Action $action -Trigger $trigger -Settings $settings -Force | Out-Null
+log "每日同步排程設定完成（每天 09:00）"
 
 # ── 完成 ─────────────────────────────────────────────────────
 Write-Host "`n============================================================" -ForegroundColor Cyan
