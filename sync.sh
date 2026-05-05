@@ -59,7 +59,14 @@ done
 HOME_PATH=$(echo $HOME | sed 's|/|-|g')
 sync_repo "$HOME/.claude/projects/$HOME_PATH/memory" "claude-memory"
 
-# ── 3. Google Drive .env 同步（雙向）────────────────────────
+# ── 3. Claude CLAUDE.md 同步 ─────────────────────────────────
+CLAUDE_MD_SRC="$PROJECTS_DIR/my-agent-config/configs/CLAUDE.md"
+if [ -f "$CLAUDE_MD_SRC" ]; then
+    cp "$CLAUDE_MD_SRC" "$HOME/.claude/CLAUDE.md"
+    log "  CLAUDE.md 同步完成"
+fi
+
+# ── 4. Google Drive .env 同步（雙向）────────────────────────
 rclone sync "$PROJECTS_DIR/ugo-webhook-server/.env"       "$GDRIVE/env/ugo-reception/" 2>/dev/null
 rclone sync "$PROJECTS_DIR/kyle-projects/ugo-cloud-api/.env" "$GDRIVE/env/ugo-cloud-api/" 2>/dev/null
 log "  .env 同步完成"
