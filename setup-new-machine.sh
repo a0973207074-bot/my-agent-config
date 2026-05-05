@@ -148,14 +148,23 @@ else
 fi
 log "Claude Memory 同步完成"
 
-# ── 8. 下載大型檔案（Google Drive）──────────────────────────
+# ── 8. Claude CLAUDE.md 複製 ─────────────────────────────────
+info "複製 CLAUDE.md..."
+CLAUDE_MD_SRC="$PROJECTS_DIR/my-agent-config/configs/CLAUDE.md"
+if [ -f "$CLAUDE_MD_SRC" ]; then
+    mkdir -p "$HOME/.claude"
+    cp "$CLAUDE_MD_SRC" "$HOME/.claude/CLAUDE.md"
+    log "CLAUDE.md 設定完成"
+fi
+
+# ── 9. 下載大型檔案（Google Drive）──────────────────────────
 info "下載大型檔案（Docker image 等，需要一段時間）..."
 LARGE_FILES_DIR="$HOME/large-files"
 mkdir -p "$LARGE_FILES_DIR"
 rclone copy "${RCLONE_GDRIVE}/large-files" "$LARGE_FILES_DIR" --progress
 log "大型檔案下載完成 → $LARGE_FILES_DIR"
 
-# ── 9. 載入 Docker Image ─────────────────────────────────────
+# ── 10. 載入 Docker Image ─────────────────────────────────────
 if [ -f "$LARGE_FILES_DIR/maira-fastumi.tar" ]; then
     info "載入 MAiRA Docker image..."
     docker load -i "$LARGE_FILES_DIR/maira-fastumi.tar"
@@ -163,13 +172,13 @@ if [ -f "$LARGE_FILES_DIR/maira-fastumi.tar" ]; then
     log "MAiRA Docker 容器啟動完成"
 fi
 
-# ── 10. 下載 .env 檔案 ───────────────────────────────────────
+# ── 11. 下載 .env 檔案 ───────────────────────────────────────
 info "下載 .env 機密檔案..."
 rclone copy "${RCLONE_GDRIVE}/env/ugo-reception/.env"  "$PROJECTS_DIR/ugo-webhook-server/.env" 2>/dev/null || true
 rclone copy "${RCLONE_GDRIVE}/env/ugo-cloud-api/.env"  "$PROJECTS_DIR/kyle-projects/ugo-cloud-api/.env" 2>/dev/null || true
 log ".env 設定完成"
 
-# ── 11. 設定每日自動同步（cron）─────────────────────────────
+# ── 12. 設定每日自動同步（cron）─────────────────────────────
 info "設定每日自動同步..."
 SYNC_SCRIPT="$HOME/.kyle-sync.sh"
 rclone copy "${RCLONE_GDRIVE}/sync.sh" "$HOME/.kyle-sync.sh" 2>/dev/null || \
@@ -189,6 +198,7 @@ echo ""
 echo "  專案資料夾：$PROJECTS_DIR"
 echo "  大型檔案：  $LARGE_FILES_DIR"
 echo "  Memory：    $MEMORY_PATH"
+echo "  CLAUDE.md： $HOME/.claude/CLAUDE.md"
 echo "  Docker：    docker exec -it maira-fastumi bash"
 echo "  每日同步：  每天 09:00 自動執行"
 echo "  同步 Log：  ~/.kyle-sync.log"
