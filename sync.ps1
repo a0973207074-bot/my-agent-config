@@ -62,7 +62,14 @@ foreach ($repo in $REPOS) {
 $homePath = $HOME -replace "[:\\]","-"
 Sync-Repo "$HOME\.claude\projects\$homePath\memory" "claude-memory"
 
-# ── 3. Google Drive .env 同步 ────────────────────────────────
+# ── 3. Claude CLAUDE.md 同步 ─────────────────────────────────
+$claudeMdSrc = "$PROJECTS_DIR\my-agent-config\configs\CLAUDE.md"
+if (Test-Path $claudeMdSrc) {
+    Copy-Item $claudeMdSrc "$HOME\.claude\CLAUDE.md" -Force
+    log "  CLAUDE.md 同步完成"
+}
+
+# ── 4. Google Drive .env 同步 ────────────────────────────────
 rclone sync "$PROJECTS_DIR\ugo-webhook-server\.env"          "$GDRIVE/env/ugo-reception/" 2>$null
 rclone sync "$PROJECTS_DIR\kyle-projects\ugo-cloud-api\.env" "$GDRIVE/env/ugo-cloud-api/" 2>$null
 log "  .env 同步完成"
