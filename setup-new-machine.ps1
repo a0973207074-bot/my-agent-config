@@ -139,19 +139,28 @@ if (Test-Path "$memoryPath\.git") {
 }
 log "Claude Memory 同步完成"
 
-# ── 7. 下載大型檔案（Google Drive）──────────────────────────
+# ── 7. Claude CLAUDE.md 複製 ─────────────────────────────────
+info "複製 CLAUDE.md..."
+$claudeMdSrc = "$PROJECTS_DIR\my-agent-config\configs\CLAUDE.md"
+if (Test-Path $claudeMdSrc) {
+    New-Item -ItemType Directory -Force -Path "$HOME\.claude" | Out-Null
+    Copy-Item $claudeMdSrc "$HOME\.claude\CLAUDE.md" -Force
+    log "CLAUDE.md 設定完成"
+}
+
+# ── 8. 下載大型檔案（Google Drive）──────────────────────────
 info "下載大型檔案（需要一段時間）..."
 New-Item -ItemType Directory -Force -Path $LARGE_DIR | Out-Null
 rclone copy "$GDRIVE/large-files" $LARGE_DIR --progress
 log "大型檔案下載完成 → $LARGE_DIR"
 
-# ── 8. 下載 .env 檔案 ────────────────────────────────────────
+# ── 9. 下載 .env 檔案 ────────────────────────────────────────
 info "下載 .env 機密檔案..."
 rclone copy "$GDRIVE/env/ugo-reception/.env"  "$PROJECTS_DIR\ugo-webhook-server\.env"
 rclone copy "$GDRIVE/env/ugo-cloud-api/.env"  "$PROJECTS_DIR\kyle-projects\ugo-cloud-api\.env"
 log ".env 設定完成"
 
-# ── 9. 設定每日自動同步（Task Scheduler）────────────────────
+# ── 10. 設定每日自動同步（Task Scheduler）────────────────────
 info "設定每日自動同步..."
 $syncScript = "$HOME\.kyle-sync.ps1"
 rclone copy "$GDRIVE/sync.ps1" $syncScript 2>$null
@@ -172,6 +181,7 @@ Write-Host ""
 Write-Host "  專案資料夾：$PROJECTS_DIR"
 Write-Host "  大型檔案：  $LARGE_DIR"
 Write-Host "  Memory：    $memoryPath"
+Write-Host "  CLAUDE.md： $HOME\.claude\CLAUDE.md"
 Write-Host "  Docker：    docker exec -it maira-fastumi bash"
 Write-Host "  每日同步：  每天 09:00 自動執行"
 Write-Host "  同步 Log：  $HOME\.kyle-sync.log"
