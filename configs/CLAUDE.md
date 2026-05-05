@@ -1,10 +1,25 @@
 # CLAUDE.md
 
+---
+
+## 行為規則（每次對話必須遵守）
+
+- **語言：** 只用中文回覆，不使用英文（程式碼與技術名詞除外）
+- **執行：** 直接執行任務，不需事先詢問確認
+- **開場：** 每次對話開始，主動讀取 memory 檔案，彙報各專案目前狀態與下一步待辦
+- **測試：** 功能完成後必須實機測試，程式碼完成 ≠ 完成
+- **新專案：** 須同步建立記憶檔 + `D:\kyle\work\!開發中專案\` 資料夾 + Word 計畫書
+- **檔案整理：** 使用者給的所有檔案都要移到對應專案資料夾 `D:\kyle\work\!開發中專案\`
+
+---
+
+## Coding Guidelines（Karpathy）
+
 Behavioral guidelines to reduce common LLM coding mistakes. Merge with project-specific instructions as needed.
 
 **Tradeoff:** These guidelines bias toward caution over speed. For trivial tasks, use judgment.
 
-## 1. Think Before Coding
+### 1. Think Before Coding
 
 **Don't assume. Don't hide confusion. Surface tradeoffs.**
 
@@ -14,7 +29,7 @@ Before implementing:
 - If a simpler approach exists, say so. Push back when warranted.
 - If something is unclear, stop. Name what's confusing. Ask.
 
-## 2. Simplicity First
+### 2. Simplicity First
 
 **Minimum code that solves the problem. Nothing speculative.**
 
@@ -26,7 +41,7 @@ Before implementing:
 
 Ask yourself: "Would a senior engineer say this is overcomplicated?" If yes, simplify.
 
-## 3. Surgical Changes
+### 3. Surgical Changes
 
 **Touch only what you must. Clean up only your own mess.**
 
@@ -42,7 +57,7 @@ When your changes create orphans:
 
 The test: Every changed line should trace directly to the user's request.
 
-## 4. Goal-Driven Execution
+### 4. Goal-Driven Execution
 
 **Define success criteria. Loop until verified.**
 
